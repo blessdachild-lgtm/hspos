@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HS-POS Diagnostic</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0D0F14;
+    --surface: #13161D;
+    --surface2: #1A1E28;
+    --border: #252A36;
+    --text: #E8EAF0;
+    --muted: #6B7280;
+    --dim: #3A3F4D;
+
+    --state: #E8833A;
+    --state-bg: #1C1209;
+    --state-border: #3D2810;
+
+    --identity: #4A9EDB;
+    --identity-bg: #091520;
+    --identity-border: #0D2D42;
+
+    --decision: #9B6FDB;
+    --decision-bg: #120D1C;
+    --decision-border: #261840;
+
+    --calibration: #4DB87A;
+    --calibration-bg: #091410;
+    --calibration-border: #0D3020;
+
+    --gold: #C9A84C;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 0 24px; }
+
+  /* SCREEN SYSTEM */
+  .screen { display: none; animation: fadeUp 0.4s ease both; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* INTRO SCREEN */
+  .intro-header {
+    padding: 80px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .system-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .system-tag::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--muted);
+  }
+
+  .intro-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(40px, 8vw, 64px);
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .intro-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .intro-statements {
+    margin-bottom: 40px;
+  }
+  .intro-statements p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+  .intro-statements ul {
+    list-style: none;
+    margin: 0 0 16px 0;
+    padding: 0;
+  }
+  .intro-statements ul li {
+    font-size: 15px;
+    color: #A0A8B8;
+    line-height: 1.8;
+    padding-left: 20px;
+    position: relative;
+  }
+  .intro-statements ul li::before {
+    content: '·';
+    position: absolute;
+    left: 6px;
+    color: var(--gold);
+  }
+  .intro-closing {
+    font-size: 15px;
+    color: var(--text) !important;
+    font-weight: 600;
+    line-height: 1.8;
+    margin-top: 24px !important;
+  }
+
+  /* MICRO FEEDBACK */
+  .micro-feedback {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-top: 20px;
+    min-height: 18px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .micro-feedback.visible { opacity: 1; }
+
+  /* ANALYSIS TRANSITION */
+  .analysis-screen { padding: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .analysis-inner { text-align: center; padding: 48px 24px; }
+  .analysis-lines { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .analysis-line {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .analysis-line.show { opacity: 1; transform: translateY(0); }
+  .analysis-line.gold { color: var(--gold); }
+  .analysis-spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 32px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULT UPGRADES */
+  .result-breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid currentColor;
+    padding: 24px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.9;
+    color: #C0C8D8;
+  }
+  .result-breakdown .rb-intro {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+  .result-breakdown .rb-why {
+    margin-top: 16px;
+  }
+  .result-breakdown .rb-why-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .result-breakdown ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .result-breakdown ul li {
+    padding-left: 20px;
+    position: relative;
+    color: #A0A8B8;
+  }
+  .result-breakdown ul li::before {
+    content: '·';
+    position: absolute;
+    left: 6px;
+    color: var(--muted);
+  }
+  .result-consequence {
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .trust-anchor {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px 22px;
+    margin-bottom: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .trust-anchor span { color: #A0A8B8; }
+
+  .conversion-block {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--gold);
+    padding: 28px 24px;
+    margin-top: 40px;
+    text-align: center;
+  }
+  .conversion-block .cb-top {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .conversion-block .cb-top strong { color: var(--text); display: block; font-size: 16px; margin-bottom: 8px; }
+  .conversion-block .cb-cta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .intro-sub {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 480px;
+    margin-bottom: 48px;
+  }
+
+  .design-note {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    padding: 20px 24px;
+    margin-bottom: 48px;
+    font-size: 14px;
+    color: #A0A8B8;
+    line-height: 1.7;
+  }
+  .design-note strong { color: var(--gold); font-weight: 600; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 16px 32px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold); transform: translateY(-1px); }
+  .btn-primary .arrow { font-size: 18px; transition: transform 0.2s; }
+  .btn-primary:hover .arrow { transform: translateX(4px); }
+
+  /* PROGRESS */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 100;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    transition: width 0.4s ease;
+  }
+
+  /* QUESTION SCREEN */
+  .q-screen { padding: 60px 0 80px; }
+
+  .q-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .q-cluster {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border: 1px solid currentColor;
+  }
+  .cluster-state { color: var(--state); border-color: var(--state-border); background: var(--state-bg); }
+  .cluster-identity { color: var(--identity); border-color: var(--identity-border); background: var(--identity-bg); }
+  .cluster-decision { color: var(--decision); border-color: var(--decision-border); background: var(--decision-bg); }
+  .cluster-calibration { color: var(--calibration); border-color: var(--calibration-border); background: var(--calibration-bg); }
+
+  .q-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .q-counter span { color: var(--text); font-weight: 500; }
+
+  .q-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(22px, 4vw, 30px);
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 40px;
+  }
+
+  .answers { display: flex; flex-direction: column; gap: 10px; }
+
+  .answer-btn {
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px 22px;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-family: 'Syne', sans-serif;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .answer-btn:hover { border-color: var(--dim); background: var(--surface2); transform: translateX(4px); }
+  .answer-btn.selected { background: var(--surface2); border-color: var(--gold); }
+
+  .answer-dot {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--dim);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.18s;
+    position: relative;
+  }
+  .answer-btn.selected .answer-dot {
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+  .answer-btn.selected .answer-dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--bg);
+    border-radius: 50%;
+  }
+
+  .answer-flag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .q-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-back {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 12px 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .btn-back:hover { border-color: var(--dim); color: var(--text); }
+
+  .btn-next {
+    background: var(--text);
+    border: none;
+    color: var(--bg);
+    padding: 14px 28px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  .btn-next.enabled { opacity: 1; pointer-events: all; }
+  .btn-next.enabled:hover { background: var(--gold); transform: translateY(-1px); }
+
+  /* RESULT SCREEN */
+  .result-screen { padding: 60px 0 100px; }
+
+  .result-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .result-impediment {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .result-engine-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    display: inline-block;
+    border: 1px solid;
+    margin-bottom: 32px;
+  }
+
+  .result-subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .secondary-note {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 32px;
+    padding: 14px 18px;
+    border-left: 2px solid var(--border);
+  }
+
+  .result-definition {
+    font-size: 15px;
+    color: #A0A8B8;
+    line-height: 1.8;
+  }
+
+  .directive-block {
+    margin-bottom: 32px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .directive-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .directive-content {
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  .directive-content ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .directive-content ul li {
+    padding-left: 20px;
+    position: relative;
+    color: #C0C8D8;
+  }
+  .directive-content ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  .success-metric {
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  .success-metric .sm-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .success-metric p { font-size: 14px; color: #A0A8B8; line-height: 1.7; font-style: italic; }
+
+  .score-display {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+  .score-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .score-item.primary { border-color: var(--gold); }
+  .score-item .si-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .score-item .si-count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    line-height: 1;
+  }
+  .score-item.primary .si-count { color: var(--gold); }
+
+  .btn-retake {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 14px 28px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-top: 16px;
+  }
+  .btn-retake:hover { border-color: var(--text); color: var(--text); }
+
+  .footer-note {
+    margin-top: 60px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  @media (max-width: 480px) {
+    .score-display { grid-template-columns: repeat(2, 1fr); }
+    .q-screen { padding: 40px 0 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- INTRO -->
+<div class="screen active" id="screen-intro">
+  <div class="wrap">
+    <div class="intro-header">
+      <div class="system-tag">HS-POS Diagnostic System</div>
+      <h1 class="intro-title">Identify the<br><em>exact point</em><br>of breakdown.</h1>
+      <div class="intro-statements">
+        <p>This system identifies the exact point where your behavioral chain collapses under pressure.</p>
+        <p>It does not measure confidence.<br>It does not evaluate personality.<br>It isolates failure patterns based on behavioral response patterns.</p>
+        <p>Your responses will be analyzed to determine:</p>
+        <ul>
+          <li>Your primary impediment</li>
+          <li>The engine required to correct it</li>
+          <li>The operational directive for your next session</li>
+        </ul>
+        <p class="intro-closing">This is not self-assessment.<br>This is behavioral classification.</p>
+      </div>
+      <button class="btn-primary" onclick="startDiagnostic()">
+        Begin <span class="arrow">→</span>
+      </button>
+    </div>
+    <div class="footer-note">
+      8 questions · ~5 minutes · Operational directive delivered immediately<br>
+      Human Social Performance Operating System · 100 Acrez Holdings, LLC
+    </div>
+  </div>
+</div>
+
+<!-- QUESTION SCREEN -->
+<div class="screen" id="screen-question">
+  <div class="wrap q-screen">
+    <div class="q-meta">
+      <div class="q-cluster" id="clusterTag"></div>
+      <div class="q-counter">Question <span id="qNum">1</span> of 8</div>
+    </div>
+    <div class="q-number" id="qNumber"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="answers" id="answersContainer"></div>
+    <div class="micro-feedback" id="microFeedback"></div>
+    <div class="q-nav">
+      <button class="btn-back" id="btnBack" onclick="goBack()">← Back</button>
+      <button class="btn-next" id="btnNext" onclick="goNext()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYSIS TRANSITION -->
+<div class="screen" id="screen-analysis">
+  <div class="wrap analysis-screen">
+    <div class="analysis-inner">
+      <div class="analysis-spinner"></div>
+      <div class="analysis-lines">
+        <div class="analysis-line" id="al1">Analysis complete.</div>
+        <div class="analysis-line" id="al2">Behavioral signals clustered.</div>
+        <div class="analysis-line" id="al3">Primary impediment identified.</div>
+        <div class="analysis-line gold" id="al4">Generating operational directive…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div class="screen" id="screen-result">
+  <div class="wrap result-screen">
+    <div class="result-header">
+      <div class="result-label">Primary Breakdown Point</div>
+      <div class="result-impediment" id="resultImpediment"></div>
+      <div class="result-subtitle" id="resultSubtitle"></div>
+      <div class="result-engine-tag" id="resultEngineTag"></div>
+    </div>
+
+    <div class="result-breakdown" id="resultBreakdown"></div>
+
+    <div style="margin-bottom:12px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);">Signal Tally</div>
+    <div class="score-display" id="scoreDisplay"></div>
+    <div class="secondary-note" id="secondaryNote"></div>
+
+    <div class="directive-block" id="objectiveBlock">
+      <div class="directive-label">Operational Directive</div>
+      <div class="directive-content" id="objectiveContent"></div>
+    </div>
+
+    <div class="directive-block" id="fieldBlock">
+      <div class="directive-label">Field Execution</div>
+      <div class="directive-content" id="fieldContent"></div>
+    </div>
+
+    <div class="success-metric">
+      <div class="sm-label">Success Metric</div>
+      <p id="successMetric"></p>
+    </div>
+
+    <div class="trust-anchor">
+      <span>This classification is based on clustered behavioral response patterns across multiple assessment points — not personality labeling or single self-reported feelings.</span><br>
+      Your result reflects how you repeatedly respond under pressure in this diagnostic — not how you wish you responded.
+    </div>
+
+    <div class="conversion-block">
+      <div class="cb-top">
+        <strong>You have identified the upstream failure point.</strong>
+        Correction requires running the full HS-POS Engine Sequence. The diagnostic is the entry point. The system is what changes the pattern.
+      </div>
+      <div class="cb-cta">Unlock the HS-POS System → Begin Operational Training</div>
+    </div>
+
+    <button class="btn-retake" onclick="retake()">↺ Retake Diagnostic</button>
+
+    <div class="footer-note">
+      Re-run this diagnostic every 30 days or after any significant performance shift.<br>
+      HS-POS · Human Social Performance Operating System · 100 Acrez Holdings, LLC
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    id: 1,
+    cluster: "state",
+    clusterLabel: "Cluster A — State Regulation",
+    text: "When you see an opportunity to approach or engage, what happens in your body?",
+    answers: [
+      { text: "My heart rate spikes, chest tightens, or I feel a physical surge — and I either freeze or push through uncomfortably", flag: true },
+      { text: "I feel a wave of something (anxiety, adrenaline) that I have to manage before I can act", flag: true },
+      { text: "I notice mild activation but it resolves quickly and doesn't affect my behavior", flag: false },
+      { text: "I feel relatively neutral — no significant physical response", flag: false },
+    ]
+  },
+  {
+    id: 2,
+    cluster: "state",
+    clusterLabel: "Cluster A — State Regulation",
+    text: "After an interaction that went well, how do you feel?",
+    answers: [
+      { text: "Relieved — like a pressure has lifted", flag: true },
+      { text: "Wired or unsettled — I replay it and can't fully decompress", flag: true },
+      { text: "Satisfied but grounded — it went well and I move on", flag: false },
+      { text: "Neutral — it's just another interaction", flag: false },
+    ]
+  },
+  {
+    id: 3,
+    cluster: "identity",
+    clusterLabel: "Cluster B — Identity & Attachment",
+    text: "When you receive a strong positive signal — she's clearly interested — what do you do?",
+    answers: [
+      { text: "I compliment her, give extra attention, or try to lock it in — I feel like I need to secure it", flag: true },
+      { text: "I get funnier, more talkative, or more performative — I escalate my behavior", flag: true },
+      { text: "I continue at the same pace — the signal is data, not an emergency", flag: false },
+      { text: "I advance calmly toward logistics without changing my energy", flag: false },
+    ]
+  },
+  {
+    id: 4,
+    cluster: "identity",
+    clusterLabel: "Cluster B — Identity & Attachment",
+    text: "Between interactions with someone you're interested in, how much mental space do they occupy?",
+    answers: [
+      { text: "Significant — I replay conversations, analyze texts, and think about what to do next", flag: true },
+      { text: "I check my phone more than I'd like to admit and feel unsettled when they don't respond quickly", flag: true },
+      { text: "Some — I think about it briefly then return to my own life", flag: false },
+      { text: "Minimal — I stay grounded in my own life and check in when I feel like it", flag: false },
+    ]
+  },
+  {
+    id: 5,
+    cluster: "decision",
+    clusterLabel: "Cluster C — Decision & Action",
+    text: "When a clear opportunity to approach is present, what typically happens?",
+    answers: [
+      { text: "I identify the opportunity but don't move — I find a reason it's not the right moment", flag: true },
+      { text: "I wait for a better opening, more certainty, or a sign that it's okay — and the window closes", flag: true },
+      { text: "I move within seconds if the situation is viable, without needing certainty", flag: false },
+      { text: "I act on most opportunities — missed windows are the exception, not the pattern", flag: false },
+    ]
+  },
+  {
+    id: 6,
+    cluster: "decision",
+    clusterLabel: "Cluster C — Decision & Action",
+    text: "When you think about approaching or initiating, what does your internal dialogue look like?",
+    answers: [
+      { text: "I run through scenarios, evaluate risk, and often conclude it's not worth it or not the right time", flag: true },
+      { text: "I have a clear conversation with myself about why this situation is different — then don't move", flag: true },
+      { text: "Brief consideration, then action or deliberate choice to pass — not an internal debate", flag: false },
+      { text: "Minimal internal dialogue — I read the environment and move without extended deliberation", flag: false },
+    ]
+  },
+  {
+    id: 7,
+    cluster: "calibration",
+    clusterLabel: "Cluster D — Signal Calibration",
+    text: "How do your interactions typically end?",
+    answers: [
+      { text: "I stay in conversations longer than I should — I'm not sure when to advance or leave", flag: true },
+      { text: "I've sensed (or been told) I waited too long to make a move — or I moved and it felt wrong to her", flag: true },
+      { text: "I read the interaction and advance or exit at roughly the right time", flag: false },
+      { text: "I overstay occasionally but it's not a consistent pattern", flag: false },
+    ]
+  },
+  {
+    id: 8,
+    cluster: "calibration",
+    clusterLabel: "Cluster D — Signal Calibration",
+    text: "When you engage with someone who seems interested, what typically happens?",
+    answers: [
+      { text: "I engage well initially but I'm not sure how to move from conversation to logistics — I stall at that transition", flag: true },
+      { text: "I mistake friendliness for attraction — I've been surprised when interest wasn't there", flag: true },
+      { text: "I can usually tell the difference between friendly and attracted, and I advance when signals cluster green", flag: false },
+      { text: "Calibration is a strength — I read signals accurately and transition cleanly to logistics", flag: false },
+    ]
+  }
+];
+
+const CLUSTER_LABELS = { state: "State", identity: "Identity", decision: "Decision", calibration: "Calibration" };
+const SECONDARY_DESCRIPTIONS = {
+  state: "Your body is the primary block right now. Once that's under control, any Identity or Decision patterns below will become the next focus.",
+  identity: "How you see yourself under pressure is the primary block. Once that's stable, any State or Decision patterns below become the next focus.",
+  decision: "Getting out of your own head is the primary block. Once you're moving consistently, any remaining patterns in the other areas become the next focus.",
+  calibration: "Reading signals accurately is the primary block. The fact that you're already engaging means your foundation is solid — this is a refinement, not a rebuild."
+};
+
+const RESULTS = {
+  state: {
+    color: "var(--state)",
+    impediment: "State Breakdown",
+    subtitle: "Your nervous system is overriding your execution.",
+    engine: "Engine 2 — State Regulation",
+    engineClass: "cluster-state",
+    breakdown: {
+      intro: "You are not struggling with confidence.\nYou are experiencing physiological override under pressure.",
+      mechanism: "You know what to do. You do not execute when the moment arrives. Your nervous system collapses the chain before behavior can stabilize.",
+      why: ["You hesitate at the entry point", "You overthink mid-interaction", "Your delivery becomes inconsistent under pressure"],
+      consequence: "This is not a knowledge problem. This is a regulation problem. If uncorrected, every interaction will continue to collapse regardless of preparation."
+    },
+    objective: "Run Engine 2 exclusively. Do not focus on conversation. Do not focus on outcome. Your only objective right now is engaging while maintaining controlled state.",
+    directives: [
+      "Breathing drill, 3 times daily: breathe in for 5 seconds, out for 5 seconds, hold for 2. Do this every day for a week before anything else.",
+      "When you feel the spike happening — stop. Notice it. Take one breath. Then move. Not after the feeling passes. Through it.",
+      "First session objective: have ONE low-pressure conversation. The only question is — did you do it while your body was activated?",
+      "After each rep: log how your body felt before, during, and after. Do not assess the outcome. Assess the state."
+    ],
+    metric: "Did you act even though your body was firing? That's a successful rep. That's the whole game right now."
+  },
+  identity: {
+    color: "var(--identity)",
+    impediment: "Identity Instability",
+    subtitle: "Your behavior is being driven by external approval, not internal authority.",
+    engine: "Engine 1 — Identity & Foundation",
+    engineClass: "cluster-identity",
+    breakdown: {
+      intro: "You are not acting from internal authority.\nYou are adjusting based on perceived approval.",
+      mechanism: "You're solid until someone shows real interest. Then you shift. Your execution becomes inconsistent because your identity is not stable under pressure.",
+      why: ["You over-invest too early", "You chase positive reactions instead of leading", "You shift behavior mid-interaction when interest is high"],
+      consequence: "Your behavior is being driven by their reaction instead of your own foundation. If uncorrected, you will remain dependent on external responses to calibrate yourself."
+    },
+    objective: "Run Engine 1 exclusively. Build your identity anchor before any field sessions. Define who you are independent of how any interaction resolves.",
+    directives: [
+      "Write this sentence and mean it: 'I am [what you do] who [what you value] — and whether this goes well or not does not change that.' Put it somewhere visible.",
+      "Anti-Validation Rule: no compliments to relieve tension. Exchange validation only for demonstrated investment — never to smooth the moment.",
+      "When a strong signal arrives — pause, breathe once, continue at the same pace. Do not escalate your behavior because interest is present.",
+      "After each interaction: identify the exact moment you shifted. When was it? What triggered it? That is the data."
+    ],
+    metric: "Did you stay the same person from entry to exit? Did you advance without over-investing? That is a successful rep."
+  },
+  decision: {
+    color: "var(--decision)",
+    impediment: "Decision Paralysis",
+    subtitle: "Your breakdown occurs before action — not during it.",
+    engine: "Engine 3 — Decision Engine",
+    engineClass: "cluster-decision",
+    breakdown: {
+      intro: "You do not lack ability.\nYou delay execution.",
+      mechanism: "You see the opportunity. You know what to do. Then your brain builds the case for why right now isn't the right time. By the time it's done, the window is closed.",
+      why: ["Opportunities pass without action", "You replay scenarios instead of entering them", "You remain stuck in preparation while the moment expires"],
+      consequence: "This is not caution. This is avoidance operating as thinking. If uncorrected, nothing changes regardless of how much you know."
+    },
+    objective: "Run Engine 3 exclusively. Stop making decisions in the moment. Set the rule before you arrive — so there is nothing left to decide when the window opens.",
+    directives: [
+      "Load this rule before every session: if the opportunity is real and viable, I move within 3 seconds. Not after I feel ready. Within 3 seconds.",
+      "Pre-commit to a number before you go: 'I will initiate [N] interactions today.' One is enough. The number is set before you arrive — not negotiated in the moment.",
+      "When you catch yourself building a case for why now isn't right — that is the signal to move, not to keep thinking.",
+      "After: did you act within 3 seconds of identifying the window? Yes or no. That is the only metric."
+    ],
+    metric: "Did you move when the window was open — before your brain closed it? That is a successful rep."
+  },
+  calibration: {
+    color: "var(--calibration)",
+    impediment: "Calibration Breakdown",
+    subtitle: "You're engaging. You're not reading or adjusting correctly.",
+    engine: "Engine 6 — Calibration Engine",
+    engineClass: "cluster-calibration",
+    breakdown: {
+      intro: "Your issue is not action.\nYour issue is interpretation.",
+      mechanism: "You can hold a conversation. You're not freezing. The problem is you're not reading when to advance, when to hold, and when to exit — so interactions stall or collapse at the transition point.",
+      why: ["You misread friendliness as attraction", "You push when you should pause", "You fail to advance when signals cluster green"],
+      consequence: "Your interactions do not progress because your reads are off. If uncorrected, engagement will not convert regardless of effort."
+    },
+    objective: "Run Engine 6 exclusively. Do not increase effort. Do not force progression. Your only objective is observe → interpret → adjust based on actual signal clusters.",
+    directives: [
+      "Assume your interest read is inflated. Whatever you think you're seeing — dial it back one level. What reads green may be yellow.",
+      "Before any advancement decision: count three signals across at least three exchanges. Not moments — patterns. Body orientation, reciprocal questions, re-engagement after gaps.",
+      "When you feel the pull to stay and keep talking — check the energy. Is it growing or holding? Holding steady is your cue to advance or exit, not to continue.",
+      "After each rep: log what signals you read, what you decided, what happened. Write it within 2 hours."
+    ],
+    metric: "Did you read a pattern — not a moment — before deciding? Did you advance when signals clustered green? That is a successful rep."
+  }
+};
+
+const RESULTS_BASELINE = {
+  color: "var(--gold)",
+  impediment: "No Primary Impediment Detected",
+  engine: "Starting Point: You're Already Operating",
+  engineClass: "",
+  engineStyle: "border-color: var(--gold); color: var(--gold);",
+  definition: "Your answers didn't flag a clear breakdown point. That means your baseline is solid — you're not being stopped by your body, your identity, your decisions, or your signal reads in any obvious way. That's real. Most men have at least one of these working against them. You may not right now.",
+  objective: "The work at your level isn't fixing a problem — it's raising the ceiling. You're operating. The question now is how precisely, how consistently, and how well you perform when the stakes go up.",
+  directives: [
+    "Your next focus is calibration under pressure. High-stakes situations — real interest, important rooms, unfamiliar environments — that's where baseline men find their actual gaps.",
+    "Start logging your interactions. Not outcomes. Decisions. What did you read? What did you decide? What happened? Patterns you can't see right now will show up in the data.",
+    "Watch for one thing: do you perform differently when the stakes feel higher? If yes — that's your impediment. It just hasn't shown up yet at the baseline level these questions measure.",
+    "Re-run this diagnostic in 30 days or after any high-stakes situation that didn't go the way you expected."
+  ],
+  metric: "Are you operating consistently regardless of the environment or the stakes? That's the standard at your level."
+};
+
+const CLUSTER_ORDER = ["state", "identity", "decision", "calibration"];
+const CLUSTER_NAMES = { state: "State", identity: "Identity", decision: "Decision", calibration: "Calibration" };
+const PRIORITY = ["state", "identity", "decision", "calibration"];
+
+let currentQ = 0;
+let answers = {};
+
+function updateProgress() {
+  const pct = (currentQ / QUESTIONS.length) * 100;
+  document.getElementById("progressFill").style.width = pct + "%";
+}
+
+function startDiagnostic() {
+  currentQ = 0;
+  answers = {};
+  showQuestion();
+  showScreen("screen-question");
+}
+
+function showQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById("qNum").textContent = currentQ + 1;
+  document.getElementById("qNumber").textContent = `Question ${currentQ + 1}`;
+  document.getElementById("qText").textContent = q.text;
+
+  const tag = document.getElementById("clusterTag");
+  tag.textContent = q.clusterLabel;
+  tag.className = "q-cluster cluster-" + q.cluster;
+
+  const container = document.getElementById("answersContainer");
+  container.innerHTML = "";
+
+  q.answers.forEach((a, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn" + (answers[currentQ] === i ? " selected" : "");
+    btn.innerHTML = `<div class="answer-dot"></div><div>${a.text}</div>`;
+    btn.onclick = () => selectAnswer(i);
+    container.appendChild(btn);
+  });
+
+  document.getElementById("btnBack").style.visibility = currentQ === 0 ? "hidden" : "visible";
+  updateNextBtn();
+  updateProgress();
+}
+
+const MICRO_FEEDBACK = [
+  "Tracking behavioral pattern…",
+  "Signal recorded",
+  "Pattern forming…",
+  "Cluster detection in progress…",
+  "Behavioral frequency confirmed",
+  "Routing logic preparing…",
+  "Impediment mapping in progress…",
+  "Engine assignment pending…",
+  "Response pattern logged",
+  "Analyzing hesitation response…",
+  "Decision latency signal detected…",
+  "Cluster confidence increasing…"
+];
+
+function selectAnswer(idx) {
+  answers[currentQ] = idx;
+  document.querySelectorAll(".answer-btn").forEach((btn, i) => {
+    btn.classList.toggle("selected", i === idx);
+  });
+  // Micro feedback
+  const mf = document.getElementById("microFeedback");
+  if (mf) {
+    mf.classList.remove("visible");
+    setTimeout(() => {
+      mf.textContent = MICRO_FEEDBACK[Math.floor(Math.random() * MICRO_FEEDBACK.length)];
+      mf.classList.add("visible");
+    }, 100);
+  }
+  updateNextBtn();
+}
+
+// TIEBREAKER — fires only when Decision scores 2
+const TIEBREAKER = {
+  cluster: "decision",
+  clusterLabel: "Tiebreaker — Decision & Action",
+  text: "When you've already read the situation and the window is clearly open — what actually happens?",
+  answers: [
+    { text: "I still find a reason to wait, second-guess, or let it pass — even when I know the window is there", flag: "paralysis" },
+    { text: "I hesitate briefly but I move — the read is what triggers me, not confidence", flag: "observer" },
+    { text: "I move — once I have my read, I don't need anything else", flag: "observer" },
+    { text: "This rarely comes up — I usually don't get to the point of having a clear read before the moment passes", flag: "paralysis" },
+  ]
+};
+
+let tiebreakerActive = false;
+let tiebreakerAnswer = null;
+
+function updateNextBtn() {
+  const btn = document.getElementById("btnNext");
+  if (tiebreakerActive) {
+    btn.classList.toggle("enabled", tiebreakerAnswer !== null);
+    btn.textContent = "See Results →";
+  } else {
+    const hasAnswer = answers[currentQ] !== undefined;
+    btn.classList.toggle("enabled", hasAnswer);
+    btn.textContent = currentQ === QUESTIONS.length - 1 ? "Next →" : "Continue →";
+  }
+}
+
+function goNext() {
+  if (tiebreakerActive) {
+    if (tiebreakerAnswer === null) return;
+    runAnalysisTransition(showResults);
+    return;
+  }
+  if (answers[currentQ] === undefined) return;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    showQuestion();
+  } else {
+    // Check if tiebreaker needed
+    const scores = computeScores();
+    if (scores.decision === 2 && scores.decision >= scores.state && scores.decision >= scores.identity) {
+      showTiebreaker();
+    } else {
+      runAnalysisTransition(showResults);
+    }
+  }
+}
+
+function showTiebreaker() {
+  tiebreakerActive = true;
+  tiebreakerAnswer = null;
+
+  const q = TIEBREAKER;
+  document.getElementById("qNum").textContent = "9";
+  document.getElementById("qNumber").textContent = "One More Question";
+  document.getElementById("qText").textContent = q.text;
+
+  const tag = document.getElementById("clusterTag");
+  tag.textContent = q.clusterLabel;
+  tag.className = "q-cluster cluster-decision";
+
+  const container = document.getElementById("answersContainer");
+  container.innerHTML = "";
+
+  q.answers.forEach((a, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer-btn";
+    btn.innerHTML = `<div class="answer-dot"></div><div>${a.text}</div>`;
+    btn.onclick = () => {
+      tiebreakerAnswer = a.flag;
+      document.querySelectorAll(".answer-btn").forEach((b, j) => b.classList.toggle("selected", j === i));
+      updateNextBtn();
+    };
+    container.appendChild(btn);
+  });
+
+  document.getElementById("btnBack").style.visibility = "hidden";
+  document.getElementById("progressFill").style.width = "95%";
+  updateNextBtn();
+}
+
+function goBack() {
+  if (tiebreakerActive) {
+    tiebreakerActive = false;
+    tiebreakerAnswer = null;
+    currentQ = QUESTIONS.length - 1;
+    showQuestion();
+    return;
+  }
+  if (currentQ > 0) { currentQ--; showQuestion(); }
+}
+
+function computeScores() {
+  const scores = { state: 0, identity: 0, decision: 0, calibration: 0 };
+  QUESTIONS.forEach((q, i) => {
+    if (answers[i] !== undefined && q.answers[answers[i]].flag) {
+      scores[q.cluster]++;
+    }
+  });
+  return scores;
+}
+
+function getPrimary(scores) {
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  if (total === 0) return "baseline";
+
+  // If tiebreaker fired and user is an observer — demote decision, route to calibration or next highest
+  if (tiebreakerActive && tiebreakerAnswer === "observer") {
+    const adjusted = { ...scores, decision: 0 };
+    const adjTotal = Object.values(adjusted).reduce((a, b) => a + b, 0);
+    if (adjTotal === 0) return "calibration"; // strategic observer with no other flags = calibration refinement
+    let max = -1;
+    let primary = "calibration";
+    PRIORITY.forEach(cluster => {
+      if (cluster !== "decision" && adjusted[cluster] > max) {
+        max = adjusted[cluster];
+        primary = cluster;
+      }
+    });
+    return primary;
+  }
+
+  let max = -1;
+  let primary = "state";
+  PRIORITY.forEach(cluster => {
+    if (scores[cluster] > max) { max = scores[cluster]; primary = cluster; }
+  });
+  return primary;
+}
+
+function runAnalysisTransition(callback) {
+  showScreen("screen-analysis");
+  document.getElementById("progressFill").style.width = "98%";
+  const lines = ["al1","al2","al3","al4"];
+  lines.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add("show");
+    }, 300 + i * 400);
+  });
+  setTimeout(callback, 2200);
+}
+
+function showResults() {
+  const scores = computeScores();
+  const primary = getPrimary(scores);
+  const result = primary === "baseline" ? RESULTS_BASELINE : RESULTS[primary];
+
+  document.getElementById("resultImpediment").textContent = result.impediment;
+  document.getElementById("resultImpediment").style.color = result.color;
+
+  const subtitleEl = document.getElementById("resultSubtitle");
+  if (result.subtitle) {
+    subtitleEl.textContent = result.subtitle;
+    subtitleEl.style.display = "block";
+  } else {
+    subtitleEl.style.display = "none";
+  }
+
+  const engineTag = document.getElementById("resultEngineTag");
+  engineTag.textContent = result.engine;
+  engineTag.className = "result-engine-tag " + (result.engineClass || "");
+  if (result.engineStyle) {
+    engineTag.style.cssText = result.engineStyle;
+  } else {
+    engineTag.style.borderColor = result.color;
+    engineTag.style.color = result.color;
+  }
+
+  // Breakdown block
+  const bd = document.getElementById("resultBreakdown");
+  if (result.breakdown) {
+    bd.style.borderLeftColor = result.color;
+    bd.innerHTML = `
+      <div class="rb-intro">${result.breakdown.intro.replace(/\n/g, '<br>')}</div>
+      <div>${result.breakdown.mechanism}</div>
+      <div class="rb-why">
+        <div class="rb-why-label">This is why:</div>
+        <ul>${result.breakdown.why.map(w => `<li>${w}</li>`).join('')}</ul>
+      </div>
+      <div class="result-consequence">${result.breakdown.consequence}</div>
+    `;
+    bd.style.display = "block";
+  } else {
+    bd.style.display = "none";
+  }
+
+  document.getElementById("objectiveContent").textContent = result.objective;
+
+  const fieldContent = document.getElementById("fieldContent");
+  fieldContent.innerHTML = "<ul>" + result.directives.map(d => `<li>${d}</li>`).join("") + "</ul>";
+
+  document.getElementById("successMetric").textContent = result.metric;
+
+  const scoreDisplay = document.getElementById("scoreDisplay");
+  scoreDisplay.innerHTML = CLUSTER_ORDER.map(c => `
+    <div class="score-item ${c === primary ? "primary" : ""}">
+      <div class="si-label">${CLUSTER_NAMES[c]}</div>
+      <div class="si-count" style="color:${c === primary ? "var(--gold)" : "var(--muted)"}">${scores[c]}</div>
+    </div>
+  `).join("");
+
+  const secondaryNote = document.getElementById("secondaryNote");
+  if (SECONDARY_DESCRIPTIONS[primary]) {
+    secondaryNote.textContent = SECONDARY_DESCRIPTIONS[primary];
+    secondaryNote.style.display = "block";
+  } else {
+    secondaryNote.style.display = "none";
+  }
+
+  document.getElementById("progressFill").style.width = "100%";
+  showScreen("screen-result");
+}
+
+function retake() {
+  currentQ = 0;
+  answers = {};
+  tiebreakerActive = false;
+  tiebreakerAnswer = null;
+  updateProgress();
+  showScreen("screen-intro");
+}
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
