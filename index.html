@@ -13,9 +13,9 @@
     --surface: #13161D;
     --surface2: #1A1E28;
     --border: #252A36;
-    --text: #E8EAF0;
-    --muted: #6B7280;
-    --dim: #3A3F4D;
+    --text: #F0F2F8;
+    --muted: #9BA3B5;
+    --dim: #4A5268;
 
     --state: #E8833A;
     --state-bg: #1C1209;
@@ -121,7 +121,7 @@
   }
   .intro-statements ul li {
     font-size: 15px;
-    color: #A0A8B8;
+    color: #C8D0E0;
     line-height: 1.8;
     padding-left: 20px;
     position: relative;
@@ -190,7 +190,7 @@
     margin-bottom: 24px;
     font-size: 14px;
     line-height: 1.9;
-    color: #C0C8D8;
+    color: #D0D8E8;
   }
   .result-breakdown .rb-intro {
     font-size: 16px;
@@ -220,7 +220,7 @@
   .result-breakdown ul li {
     padding-left: 20px;
     position: relative;
-    color: #A0A8B8;
+    color: #C8D0E0;
   }
   .result-breakdown ul li::before {
     content: '·';
@@ -230,11 +230,28 @@
   }
   .result-consequence {
     font-size: 13px;
-    color: #888;
+    color: #B0B8C8;
     font-style: italic;
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--border);
+  }
+
+  .result-cost {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: #C0C8D8;
+    line-height: 1.7;
+  }
+  .cost-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-right: 8px;
   }
 
   .trust-anchor {
@@ -245,10 +262,11 @@
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     letter-spacing: 0.08em;
-    color: var(--muted);
+    color: #A8B4C8;
     line-height: 1.8;
   }
-  .trust-anchor span { color: #A0A8B8; }
+  .trust-anchor span { color: var(--gold); font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; font-size: 10px; }
+  .trust-anchor strong { color: #C8D0E0; font-weight: 600; }
 
   .conversion-block {
     border: 1px solid var(--border);
@@ -259,7 +277,7 @@
   }
   .conversion-block .cb-top {
     font-size: 14px;
-    color: var(--muted);
+    color: #A8B4C8;
     line-height: 1.8;
     margin-bottom: 20px;
   }
@@ -507,7 +525,7 @@
 
   .result-subtitle {
     font-size: 15px;
-    color: var(--muted);
+    color: #B0B8CC;
     font-style: italic;
     margin-bottom: 16px;
     line-height: 1.5;
@@ -515,7 +533,7 @@
 
   .secondary-note {
     font-size: 13px;
-    color: var(--muted);
+    color: #A8B4C8;
     line-height: 1.7;
     margin-bottom: 32px;
     padding: 14px 18px;
@@ -524,7 +542,7 @@
 
   .result-definition {
     font-size: 15px;
-    color: #A0A8B8;
+    color: #C8D0E0;
     line-height: 1.8;
   }
 
@@ -555,7 +573,7 @@
   .directive-content ul li {
     padding-left: 20px;
     position: relative;
-    color: #C0C8D8;
+    color: #D0D8E8;
   }
   .directive-content ul li::before {
     content: '—';
@@ -578,7 +596,7 @@
     color: var(--gold);
     margin-bottom: 10px;
   }
-  .success-metric p { font-size: 14px; color: #A0A8B8; line-height: 1.7; font-style: italic; }
+  .success-metric p { font-size: 14px; color: #C8D0E0; line-height: 1.7; font-style: italic; }
 
   .score-display {
     display: grid;
@@ -736,10 +754,7 @@
       <p id="successMetric"></p>
     </div>
 
-    <div class="trust-anchor">
-      <span>This classification is based on clustered behavioral response patterns across multiple assessment points — not personality labeling or single self-reported feelings.</span><br>
-      Your result reflects how you repeatedly respond under pressure in this diagnostic — not how you wish you responded.
-    </div>
+    <div class="trust-anchor" id="trustAnchor"></div>
 
     <div class="conversion-block">
       <div class="cb-top">
@@ -879,6 +894,7 @@ const RESULTS = {
       why: ["You hesitate at the entry point", "You overthink mid-interaction", "Your delivery becomes inconsistent under pressure"],
       consequence: "This is not a knowledge problem. This is a regulation problem. If uncorrected, every interaction will continue to collapse regardless of preparation."
     },
+    cost: "You lose timing, you feel forced, and your performance becomes inconsistent even when you know exactly what to do.",
     objective: "Run Engine 2 exclusively. Do not focus on conversation. Do not focus on outcome. Your only objective right now is engaging while maintaining controlled state.",
     directives: [
       "Breathing drill, 3 times daily: breathe in for 5 seconds, out for 5 seconds, hold for 2. Do this every day for a week before anything else.",
@@ -900,6 +916,7 @@ const RESULTS = {
       why: ["You over-invest too early", "You chase positive reactions instead of leading", "You shift behavior mid-interaction when interest is high"],
       consequence: "Your behavior is being driven by their reaction instead of your own foundation. If uncorrected, you will remain dependent on external responses to calibrate yourself."
     },
+    cost: "You leak neediness, over-invest, and sacrifice composure right when it matters most.",
     objective: "Run Engine 1 exclusively. Build your identity anchor before any field sessions. Define who you are independent of how any interaction resolves.",
     directives: [
       "Write this sentence and mean it: 'I am [what you do] who [what you value] — and whether this goes well or not does not change that.' Put it somewhere visible.",
@@ -921,6 +938,7 @@ const RESULTS = {
       why: ["Opportunities pass without action", "You replay scenarios instead of entering them", "You remain stuck in preparation while the moment expires"],
       consequence: "This is not caution. This is avoidance operating as thinking. If uncorrected, nothing changes regardless of how much you know."
     },
+    cost: "You miss real openings, then rationalize it as bad timing instead of calling it what it is — execution failure.",
     objective: "Run Engine 3 exclusively. Stop making decisions in the moment. Set the rule before you arrive — so there is nothing left to decide when the window opens.",
     directives: [
       "Load this rule before every session: if the opportunity is real and viable, I move within 3 seconds. Not after I feel ready. Within 3 seconds.",
@@ -942,6 +960,7 @@ const RESULTS = {
       why: ["You misread friendliness as attraction", "You push when you should pause", "You fail to advance when signals cluster green"],
       consequence: "Your interactions do not progress because your reads are off. If uncorrected, engagement will not convert regardless of effort."
     },
+    cost: "Overstaying, premature moves, and avoidable missed connections — caused by acting on moments instead of reading patterns.",
     objective: "Run Engine 6 exclusively. Do not increase effort. Do not force progression. Your only objective is observe → interpret → adjust based on actual signal clusters.",
     directives: [
       "Assume your interest read is inflated. Whatever you think you're seeing — dial it back one level. What reads green may be yellow.",
@@ -1228,6 +1247,7 @@ function showResults() {
         <ul>${result.breakdown.why.map(w => `<li>${w}</li>`).join('')}</ul>
       </div>
       <div class="result-consequence">${result.breakdown.consequence}</div>
+      ${result.cost ? `<div class="result-cost"><span class="cost-label">COST</span> ${result.cost}</div>` : ''}
     `;
     bd.style.display = "block";
   } else {
@@ -1256,6 +1276,13 @@ function showResults() {
   } else {
     secondaryNote.style.display = "none";
   }
+
+  const priorityLine = PRIORITY.map(p => CLUSTER_NAMES[p]).join(" → ");
+  document.getElementById("trustAnchor").innerHTML =
+    `<span>Classification Basis</span><br>` +
+    `This result is based on clustered behavioral response patterns across multiple assessment points — not personality labeling. ` +
+    `When signals tie, the system applies a fixed priority hierarchy: <strong>${priorityLine}</strong>. ` +
+    `Your result reflects how you repeatedly respond under pressure in this diagnostic — not how you wish you responded.`;
 
   document.getElementById("progressFill").style.width = "100%";
   showScreen("screen-result");
