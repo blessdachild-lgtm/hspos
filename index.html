@@ -1249,11 +1249,6 @@ function showResults() {
   const scores = computeScores();
   const primary = getPrimary(scores);
   const result = primary === "baseline" ? RESULTS_BASELINE : RESULTS[primary];
-  const phase2Route = primary === "baseline" ? "state" : primary;
-  const phase2Url = `https://hspos-phase2.vercel.app/?module=${phase2Route}`;
-  const phase2Link = document.getElementById("phase2Link");
-  if (phase2Link) phase2Link.href = phase2Url;
-
 
   document.getElementById("resultImpediment").textContent = result.impediment;
   document.getElementById("resultImpediment").style.color = result.color;
@@ -1317,6 +1312,14 @@ function showResults() {
     secondaryNote.style.display = "block";
   } else {
     secondaryNote.style.display = "none";
+  }
+
+
+  const phase2Link = document.getElementById("phase2Link");
+  if (phase2Link && primary !== "baseline") {
+    phase2Link.href = `https://hspos-phase2.vercel.app/?module=${primary}`;
+  } else if (phase2Link) {
+    phase2Link.href = "https://hspos-phase2.vercel.app/?module=state";
   }
 
   document.getElementById("trustAnchor").innerHTML =
