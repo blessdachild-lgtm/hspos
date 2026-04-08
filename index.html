@@ -105,6 +105,16 @@
     color: var(--gold);
   }
 
+  .intro-tension {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 32px;
+    font-weight: 500;
+    border-left: 3px solid var(--gold);
+    padding-left: 16px;
+  }
+
   .intro-statements {
     margin-bottom: 40px;
   }
@@ -235,6 +245,16 @@
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid var(--border);
+  }
+
+  .result-light-consequence {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: #C8D0E0;
+    line-height: 1.7;
+    font-style: italic;
   }
 
   .result-cost {
@@ -668,9 +688,10 @@
     <div class="intro-header">
       <div class="system-tag">HS-POS Diagnostic System</div>
       <h1 class="intro-title">Identify the<br><em>exact point</em><br>of breakdown.</h1>
+      <div class="intro-tension">Most people don't fail because they lack confidence. They fail because they misidentify the problem.</div>
       <div class="intro-statements">
         <p>This system identifies the exact point where your behavioral chain collapses under pressure.</p>
-        <p>It does not measure confidence.<br>It does not evaluate personality.<br>It isolates failure patterns based on behavioral response patterns.</p>
+        <p>It does not measure confidence.<br>It does not tell you who you are.<br>It identifies where your execution fails.</p>
         <p>Your responses will be analyzed to determine:</p>
         <ul>
           <li>Your primary impediment</li>
@@ -684,7 +705,7 @@
       </button>
     </div>
     <div class="footer-note">
-      8 questions · 2 per cluster · Enough to identify the pattern without losing you in the process<br>
+      8 questions. Enough to expose the pattern without diluting the signal.<br>
       Human Social Performance Operating System · 100 Acrez Holdings, LLC
     </div>
   </div>
@@ -736,7 +757,7 @@
     <div class="result-breakdown" id="resultBreakdown"></div>
 
     <div style="margin-bottom:6px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted);">Signal Tally</div>
-    <div style="margin-bottom:16px; font-size:12px; color:#9BA3B5; line-height:1.6;">Each cluster scores 0–2. Higher scores indicate stronger behavioral signal in that category. Your primary impediment is the highest-scoring cluster, resolved by priority order when tied.</div>
+    <div style="margin-bottom:16px; font-size:12px; color:#9BA3B5; line-height:1.6;">Flags per cluster. Your primary impediment is the highest-scoring cluster.</div>
     <div class="score-display" id="scoreDisplay"></div>
     <div class="secondary-note" id="secondaryNote"></div>
 
@@ -759,10 +780,11 @@
 
     <div class="conversion-block">
       <div class="cb-top">
-        <strong>You have identified the upstream failure point.</strong>
-        Correction requires running the full HS-POS Engine Sequence. The diagnostic is the entry point. The system is what changes the pattern.
+        <strong>This is where most people stop.</strong>
+        You now know the problem. What you don't have yet is the correction.<br><br>
+        Phase 2 breaks down what's been driving this pattern and the exact behavioral shift required to correct it — day by day.
       </div>
-      <div class="cb-cta">Full System — Coming Soon · 100 Acrez Holdings, LLC</div>
+      <div class="cb-cta">Unlock Phase 2 → Begin the Correction</div>
     </div>
 
     <button class="btn-retake" onclick="retake()">↺ Retake Diagnostic</button>
@@ -780,36 +802,36 @@ const QUESTIONS = [
     id: 1,
     cluster: "state",
     clusterLabel: "Cluster A — State Regulation",
-    text: "When you see an opportunity to approach or engage, what happens in your body?",
+    text: "You see the opportunity. You know you should act. What actually happens in your body in that moment?",
     answers: [
-      { text: "My heart rate spikes, chest tightens, or I feel a physical surge — and I either freeze or push through uncomfortably", flag: true },
-      { text: "I feel a wave of something (anxiety, adrenaline) that I have to manage before I can act", flag: true },
-      { text: "I notice mild activation but it resolves quickly and doesn't affect my behavior", flag: false },
-      { text: "I feel relatively neutral — no significant physical response", flag: false },
+      { text: "Something hits — chest tightens, heart speeds up — I either freeze or push through feeling off", flag: true },
+      { text: "Something spikes — I pause and try to get it under control before I do anything", flag: true },
+      { text: "It activates briefly but passes — I still move without it affecting much", flag: false },
+      { text: "Nothing really changes — I just go", flag: false },
     ]
   },
   {
     id: 2,
     cluster: "state",
     clusterLabel: "Cluster A — State Regulation",
-    text: "After an interaction that went well, how do you feel?",
+    text: "After it goes well — what happens next?",
     answers: [
-      { text: "Relieved — like a pressure has lifted", flag: true },
-      { text: "Wired or unsettled — I replay it and can't fully decompress", flag: true },
-      { text: "Satisfied but grounded — it went well and I move on", flag: false },
-      { text: "Neutral — it's just another interaction", flag: false },
+      { text: "Relief — like I got through it", flag: true },
+      { text: "I replay it — the whole thing runs back through my head and I can't fully let it go", flag: true },
+      { text: "I move on — it went well, done", flag: false },
+      { text: "Nothing lingers — I think about next steps briefly and get back to my day", flag: false },
     ]
   },
   {
     id: 3,
     cluster: "identity",
     clusterLabel: "Cluster B — Identity & Attachment",
-    text: "When you receive a strong positive signal — they're clearly interested — what do you do?",
+    text: "They're clearly interested. You can feel it. What do you do next?",
     answers: [
-      { text: "I compliment them, give extra attention, or try to lock it in — I feel like I need to secure it", flag: true },
-      { text: "I get funnier, more talkative, or more performative — I escalate my behavior", flag: true },
-      { text: "I continue at the same pace — the signal is data, not an emergency", flag: false },
-      { text: "I advance calmly toward logistics without changing my energy", flag: false },
+      { text: "I lean in — more compliments, more attention, I want to lock it in before it shifts", flag: true },
+      { text: "I turn it up — funnier, more talkative, I can feel myself performing", flag: true },
+      { text: "Same pace — it's a signal, not a cue to change everything", flag: false },
+      { text: "I move toward logistics — calm, no shift in energy", flag: false },
     ]
   },
   {
@@ -818,46 +840,46 @@ const QUESTIONS = [
     clusterLabel: "Cluster B — Identity & Attachment",
     text: "Between interactions with someone you're interested in, how much mental space do they occupy?",
     answers: [
-      { text: "Significant — I replay conversations, analyze texts, and think about what to do next", flag: true },
-      { text: "I check my phone more than I'd like to admit and feel unsettled when they don't respond quickly", flag: true },
-      { text: "Some — I think about it briefly then return to my own life", flag: false },
-      { text: "Minimal — I stay grounded in my own life and check in when I feel like it", flag: false },
+      { text: "A lot — I'm replaying conversations, reading into texts, thinking about my next move", flag: true },
+      { text: "More than I'd like — I catch myself checking my phone, feeling off when they don't respond", flag: true },
+      { text: "A little — I think about it briefly then get back to my own life", flag: false },
+      { text: "Not much — I stay in my own lane until there's an actual reason to engage", flag: false },
     ]
   },
   {
     id: 5,
     cluster: "decision",
     clusterLabel: "Cluster C — Decision & Action",
-    text: "When a clear opportunity to approach is present, what typically happens?",
+    text: "The window's right there. What actually happens?",
     answers: [
-      { text: "I identify the opportunity but don't move — I find a reason it's not the right moment", flag: true },
-      { text: "I wait for a better opening, more certainty, or a sign that it's okay — and the window closes", flag: true },
-      { text: "I move within seconds if the situation is viable, without needing certainty", flag: false },
-      { text: "I act on most opportunities — missed windows are the exception, not the pattern", flag: false },
+      { text: "I see it — but something tells me it's not quite the right moment", flag: true },
+      { text: "I wait — for a better opening, a clearer sign, something — and it closes", flag: true },
+      { text: "I move — if the situation works, I go within seconds", flag: false },
+      { text: "I act — missing the window is the exception, not the pattern", flag: false },
     ]
   },
   {
     id: 6,
     cluster: "decision",
     clusterLabel: "Cluster C — Decision & Action",
-    text: "When you think about approaching or initiating, what does your internal dialogue look like?",
+    text: "When you think about initiating, what does the internal dialogue actually sound like?",
     answers: [
-      { text: "I run through scenarios, evaluate risk, and often conclude it's not worth it or not the right time", flag: true },
-      { text: "I have a clear conversation with myself about why this situation is different — then don't move", flag: true },
-      { text: "Brief consideration, then action or deliberate choice to pass — not an internal debate", flag: false },
-      { text: "Minimal internal dialogue — I read the environment and move without extended deliberation", flag: false },
+      { text: "I run through how it could go — and usually talk myself into why this one isn't worth it", flag: true },
+      { text: "I tell myself this situation is different from usual — then don't move anyway", flag: true },
+      { text: "Quick read, then I go or I pass — no extended back and forth", flag: false },
+      { text: "I don't really debate it — I read the room and move or don't", flag: false },
     ]
   },
   {
     id: 7,
     cluster: "calibration",
     clusterLabel: "Cluster D — Signal Calibration",
-    text: "How do your interactions typically end?",
+    text: "When you're in it — how does it usually end?",
     answers: [
-      { text: "I stay in conversations longer than I should — I'm not sure when to advance or leave", flag: true },
-      { text: "I've sensed (or been told) I waited too long to make a move — or I moved and it felt wrong to them", flag: true },
-      { text: "I read the interaction and advance or exit at roughly the right time", flag: false },
-      { text: "I overstay occasionally but it's not a consistent pattern", flag: false },
+      { text: "I stay longer than I should — I'm never sure when to push forward or wrap it up", flag: true },
+      { text: "I've either been told I waited too long or I moved and it landed wrong", flag: true },
+      { text: "I read it and make the call — advance or exit — at roughly the right time", flag: false },
+      { text: "I overstay sometimes but it's not a recurring thing", flag: false },
     ]
   },
   {
@@ -866,20 +888,20 @@ const QUESTIONS = [
     clusterLabel: "Cluster D — Signal Calibration",
     text: "When you engage with someone who seems interested, what typically happens?",
     answers: [
-      { text: "I engage well initially but I'm not sure how to move from conversation to logistics — I stall at that transition", flag: true },
-      { text: "I mistake friendliness for attraction — I've been surprised when interest wasn't there", flag: true },
-      { text: "I can usually tell the difference between friendly and attracted, and I advance when signals cluster green", flag: false },
-      { text: "Calibration is a strength — I read signals accurately and transition cleanly to logistics", flag: false },
+      { text: "I connect well early — then stall when it's time to actually move things forward", flag: true },
+      { text: "I've been caught off guard — what I read as interest wasn't actually there", flag: true },
+      { text: "I can usually tell the difference — and I advance when I've got a real read", flag: false },
+      { text: "Reading signals and transitioning cleanly is where I'm strongest", flag: false },
     ]
   }
 ];
 
 const CLUSTER_LABELS = { state: "State", identity: "Identity", decision: "Decision", calibration: "Calibration" };
 const SECONDARY_DESCRIPTIONS = {
-  state: "Your body is the primary block right now. Once that's under control, any Identity or Decision patterns below will become the next focus.",
-  identity: "How you see yourself under pressure is the primary block. Once that's stable, any State or Decision patterns below become the next focus.",
-  decision: "Getting out of your own head is the primary block. Once you're moving consistently, any remaining patterns in the other areas become the next focus.",
-  calibration: "Reading signals accurately is the primary block. The fact that you're already engaging means your foundation is solid — this is a refinement, not a rebuild."
+  state: "This is the first pattern to stabilize. The rest becomes clearer after that.",
+  identity: "This is the pattern to address first. What follows will be easier to read once this is stable.",
+  decision: "This is where the chain is breaking. Address it here before moving forward.",
+  calibration: "The foundation is solid. This is the refinement that converts engagement into results."
 };
 
 const RESULTS = {
@@ -890,24 +912,25 @@ const RESULTS = {
     engine: "Engine 2 — State Regulation",
     engineClass: "cluster-state",
     breakdown: {
-      intro: "You are not struggling with confidence.\nYou are experiencing physiological override under pressure.",
-      mechanism: "You know what to do. You do not execute when the moment arrives. Your nervous system collapses the chain before behavior can stabilize.",
+      intro: "You don't lack confidence.\nYour body overrides it the moment it matters.",
+      mechanism: "When pressure hits, your nervous system spikes before your decision-making can stabilize. That spike forces hesitation, overcorrection, or uncomfortable execution — even when you know exactly what to do.",
       why: ["You hesitate at the entry point", "You overthink mid-interaction", "Your delivery becomes inconsistent under pressure"],
       consequence: "This is not a knowledge problem. This is a regulation problem. If uncorrected, every interaction will continue to collapse regardless of preparation."
     },
     cost: "You lose timing, you feel forced, and your performance becomes inconsistent even when you know exactly what to do.",
+    lightConsequence: "If this continues, you'll keep experiencing inconsistent results — even when you know exactly what to do.",
     objective: "Run Engine 2 exclusively. Do not focus on conversation. Do not focus on outcome. Your only objective right now is engaging while maintaining controlled state.",
     directives: [
-      "Breathing drill, 3 times daily: breathe in for 5 seconds, out for 5 seconds, hold for 2. Do this every day for a week before anything else.",
-      "When you feel the spike happening — stop. Notice it. Take one breath. Then move. Not after the feeling passes. Through it.",
-      "First session objective: have ONE low-pressure conversation. The only question is — did you do it while your body was activated?",
-      "After each rep: log how your body felt before, during, and after. Do not assess the outcome. Assess the state."
+      "Your next reps should focus on regulation before performance. State first — everything else follows.",
+      "When you feel the spike — don't wait for it to pass. Notice it, breathe once, and move through it.",
+      "Start with one low-pressure conversation. The outcome doesn't matter. Whether you acted while activated does.",
+      "After each rep: note your body state before and after. Don't assess the outcome. Assess the state."
     ],
     metric: "Did you act even though your body was firing? That's a successful rep. That's the whole game right now."
   },
   identity: {
     color: "var(--identity)",
-    impediment: "Identity Instability",
+    impediment: "Identity Drift",
     subtitle: "Your behavior is being driven by external approval, not internal authority.",
     engine: "Engine 1 — Identity & Foundation",
     engineClass: "cluster-identity",
@@ -918,12 +941,13 @@ const RESULTS = {
       consequence: "Your behavior is being driven by their reaction instead of your own foundation. If uncorrected, you will remain dependent on external responses to calibrate yourself."
     },
     cost: "You leak neediness, over-invest, and sacrifice composure right when it matters most.",
+    lightConsequence: "If this continues, you'll keep losing ground at exactly the moments that matter most.",
     objective: "Run Engine 1 exclusively. Build your identity anchor before any field sessions. Define who you are independent of how any interaction resolves.",
     directives: [
-      "Write this sentence and mean it: 'I am [what you do] who [what you value] — and whether this goes well or not does not change that.' Put it somewhere visible.",
-      "Anti-Validation Rule: no compliments to relieve tension. Exchange validation only for demonstrated investment — never to smooth the moment.",
-      "When a strong signal arrives — pause, breathe once, continue at the same pace. Do not escalate your behavior because interest is present.",
-      "After each interaction: identify the exact moment you shifted. When was it? What triggered it? That is the data."
+      "Before field sessions, define who you are independent of how any interaction resolves. That's your anchor.",
+      "Your next reps should focus on holding your baseline energy when interest arrives — not escalating it.",
+      "Notice the moment you shift. That's the data. You don't need to fix it in the moment — just catch it.",
+      "After each interaction: did you stay the same person from entry to exit? That's the only question."
     ],
     metric: "Did you stay the same person from entry to exit? Did you advance without over-investing? That is a successful rep."
   },
@@ -940,12 +964,13 @@ const RESULTS = {
       consequence: "This is not caution. This is avoidance operating as thinking. If uncorrected, nothing changes regardless of how much you know."
     },
     cost: "You miss real openings, then rationalize it as bad timing instead of calling it what it is — execution failure.",
+    lightConsequence: "If this continues, the windows will keep closing — and you'll keep having reasons for why that one wasn't the right one.",
     objective: "Run Engine 3 exclusively. Stop making decisions in the moment. Set the rule before you arrive — so there is nothing left to decide when the window opens.",
     directives: [
-      "Load this rule before every session: if the opportunity is real and viable, I move within 3 seconds. Not after I feel ready. Within 3 seconds.",
-      "Pre-commit to a number before you go: 'I will initiate [N] interactions today.' One is enough. The number is set before you arrive — not negotiated in the moment.",
-      "When you catch yourself building a case for why now isn't right — that is the signal to move, not to keep thinking.",
-      "After: did you act within 3 seconds of identifying the window? Yes or no. That is the only metric."
+      "Make the decision before you arrive. The 3-second rule only works if it's loaded before the moment — not during it.",
+      "Your next reps should focus on moving when the window is valid — not after you feel certain.",
+      "When you catch yourself building a case for why now isn't right — that's the signal to move.",
+      "After each rep: did you act when the window was open? Yes or no. That's the whole metric."
     ],
     metric: "Did you move when the window was open — before your brain closed it? That is a successful rep."
   },
@@ -962,12 +987,13 @@ const RESULTS = {
       consequence: "Your interactions do not progress because your reads are off. If uncorrected, engagement will not convert regardless of effort."
     },
     cost: "Overstaying, premature moves, and avoidable missed connections — caused by acting on moments instead of reading patterns.",
+    lightConsequence: "If this continues, effort won't be the problem. Results will be.",
     objective: "Run Engine 6 exclusively. Do not increase effort. Do not force progression. Your only objective is observe → interpret → adjust based on actual signal clusters.",
     directives: [
-      "Assume your interest read is inflated. Whatever you think you're seeing — dial it back one level. What reads green may be yellow.",
-      "Before any advancement decision: count three signals across at least three exchanges. Not moments — patterns. Body orientation, reciprocal questions, re-engagement after gaps.",
-      "When you feel the pull to stay and keep talking — check the energy. Is it growing or holding? Holding steady is your cue to advance or exit, not to continue.",
-      "After each rep: log what signals you read, what you decided, what happened. Write it within 2 hours."
+      "Your next reps should focus on reading patterns across multiple exchanges — not acting on single moments.",
+      "Assume your interest read is inflated. Whatever you think you're seeing — dial it back one level.",
+      "Before any advancement decision: look for a cluster of signals, not a single one.",
+      "After each rep: what signals did you read? What did you decide based on them? Note it while it's fresh."
     ],
     metric: "Did you read a pattern — not a moment — before deciding? Did you advance when signals clustered green? That is a successful rep."
   }
@@ -975,23 +1001,22 @@ const RESULTS = {
 
 const RESULTS_BASELINE = {
   color: "var(--gold)",
-  impediment: "No Primary Impediment Detected",
+  impediment: "Foundation Intact",
   subtitle: "Your behavioral baseline is solid across all four clusters.",
   engine: "You're Already Operating — Focus on the Ceiling",
   engineClass: "",
   engineStyle: "border-color: var(--gold); color: var(--gold);",
   breakdown: {
     intro: "You are not being stopped by your body, your identity, your decisions, or your signal reads.",
-    mechanism: "Most people who take this diagnostic have at least one cluster working against them. You don't — at least not at the level these questions measure. That's real, and it's not common.",
+    mechanism: "This diagnostic measures four behavioral patterns — how your body responds under pressure, how stable your sense of self is, how quickly you act on opportunities, and how accurately you read social signals. You didn't flag a breakdown in any of them. Most people who take this have at least one cluster working against them. You don't — at least not at the level these questions measure. That's real, and it's not common.",
     why: ["Your state is regulated enough to act", "Your identity is stable enough to stay grounded", "Your decisions are clean enough to move", "Your signal reads are accurate enough to calibrate"],
     consequence: "This doesn't mean there's nothing to work on. It means the work at your level is refinement under pressure — not fixing a foundation."
   },
   cost: "The gap at your level isn't a breakdown — it's the difference between operating and operating at your ceiling.",
   objective: "Your focus is performance under elevated pressure. High-stakes situations — real interest, important rooms, unfamiliar environments — that's where baseline operators find their actual edges.",
   directives: [
-    "Start logging your interactions. Not outcomes — decisions. What did you read? What did you decide? What happened? Patterns you can't see right now will show up in the data.",
-    "Watch for one thing: do you perform differently when the stakes feel higher? If yes — that's your edge to sharpen. It just hasn't shown up at the baseline level yet.",
-    "Your next challenge is consistency under pressure, not confidence from scratch. The system and the person you are in low-stakes environments — that's who you need to be when it matters most.",
+    "Your next focus is performance consistency under elevated pressure — not building from scratch.",
+    "Watch for one thing: do you perform differently when the stakes feel higher? That gap is the work.",
     "Re-run this diagnostic in 30 days or after any high-stakes situation that didn't go the way you expected."
   ],
   metric: "Are you the same person when the stakes are high as when they're low? That's the standard at your level."
@@ -1098,7 +1123,7 @@ function updateNextBtn() {
   } else {
     const hasAnswer = answers[currentQ] !== undefined;
     btn.classList.toggle("enabled", hasAnswer);
-    btn.textContent = currentQ === QUESTIONS.length - 1 ? "Next →" : "Continue →";
+    btn.textContent = currentQ === QUESTIONS.length - 1 ? "Analyze →" : "Continue →";
   }
 }
 
@@ -1209,6 +1234,7 @@ function runAnalysisTransition(callback) {
   showScreen("screen-analysis");
   document.getElementById("progressFill").style.width = "98%";
   const lines = ["al1","al2","al3","al4"];
+  lines.forEach(id => document.getElementById(id).classList.remove("show"));
   lines.forEach((id, i) => {
     setTimeout(() => {
       document.getElementById(id).classList.add("show");
@@ -1256,6 +1282,7 @@ function showResults() {
       </div>
       <div class="result-consequence">${result.breakdown.consequence}</div>
       ${result.cost ? `<div class="result-cost"><span class="cost-label">COST</span> ${result.cost}</div>` : ''}
+      ${result.lightConsequence ? `<div class="result-light-consequence">${result.lightConsequence}</div>` : ''}
     `;
     bd.style.display = "block";
   } else {
@@ -1285,13 +1312,10 @@ function showResults() {
     secondaryNote.style.display = "none";
   }
 
-  const priorityLine = PRIORITY.map(p => CLUSTER_NAMES[p]).join(" → ");
   document.getElementById("trustAnchor").innerHTML =
     `<span>Classification Basis</span><br>` +
-    `This is not a personality trait. This is a repeatable behavioral pattern — and repeatable patterns can be corrected.<br><br>` +
-    `This result is based on clustered behavioral response patterns across multiple assessment points — not personality labeling. ` +
-    `When signals tie, the system applies a fixed priority hierarchy: <strong>${priorityLine}</strong>. ` +
-    `Your result reflects how you repeatedly respond under pressure in this diagnostic — not how you wish you responded.`;
+    `Classification is based on clustered behavioral response patterns — not personality labeling.<br>` +
+    `It reflects how you repeatedly respond under pressure in this diagnostic — not how you prefer to see yourself.`;
 
   document.getElementById("progressFill").style.width = "100%";
   showScreen("screen-result");
