@@ -308,6 +308,8 @@
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--gold);
+    text-decoration: none;
+    display: inline-block;
   }
 
   .intro-sub {
@@ -784,7 +786,7 @@
         You now know the problem. What you don't have yet is the correction.<br><br>
         Phase 2 breaks down what's been driving this pattern and the exact behavioral shift required to correct it — day by day.
       </div>
-      <div class="cb-cta">Unlock Phase 2 → Begin the Correction</div>
+      <a class="cb-cta" id="phase2Link" href="https://hspos-phase2.vercel.app/?module=state">Unlock Phase 2 → Begin the Correction</a>
     </div>
 
     <button class="btn-retake" onclick="retake()">↺ Retake Diagnostic</button>
@@ -1247,6 +1249,11 @@ function showResults() {
   const scores = computeScores();
   const primary = getPrimary(scores);
   const result = primary === "baseline" ? RESULTS_BASELINE : RESULTS[primary];
+  const phase2Route = primary === "baseline" ? "state" : primary;
+  const phase2Url = `https://hspos-phase2.vercel.app/?module=${phase2Route}`;
+  const phase2Link = document.getElementById("phase2Link");
+  if (phase2Link) phase2Link.href = phase2Url;
+
 
   document.getElementById("resultImpediment").textContent = result.impediment;
   document.getElementById("resultImpediment").style.color = result.color;
